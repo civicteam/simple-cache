@@ -182,4 +182,52 @@ describe('Cache', () => {
       expect(newResult).to.equal(1);
     });
   });
+
+  describe('with object methods', () => {
+    function MyStatefulObject(initialValue) {
+      this.state = initialValue;
+      const self = this;
+
+      this.incrementFn = function() {
+        return ++self.state;
+      }
+
+      this.incrementClosure = () => {
+        return ++this.state;
+      }
+    }
+
+    let statefulObject, incrementFn, incrementClosure;
+
+    beforeEach(() => {
+      statefulObject = new MyStatefulObject(100);
+
+      incrementFn = cache(statefulObject.incrementFn);
+      incrementClosure = cache(statefulObject.incrementClosure);
+    });
+
+    it('do not mess up references to "this" when used on a function', async () => {
+      incrementFn();
+
+      // function has been called
+      expect(statefulObject.state).to.equal(101);
+
+      incrementFn();
+
+      // should not have called the function again
+      expect(statefulObject.state).to.equal(101);
+    });
+
+    it('do not mess up references to "this" when used on a closure', async () => {
+      incrementClosure();
+
+      // function has been called
+      expect(statefulObject.state).to.equal(101);
+
+      incrementClosure();
+
+      // should not have called the function again
+      expect(statefulObject.state).to.equal(101);
+    });
+  });
 });
