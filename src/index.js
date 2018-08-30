@@ -25,7 +25,7 @@ const { decycle } = require('json-cycle');
 function cache(fn, { ttl = 60000 } = {}) {
   const fnCache = new Map();
 
-  return _.wrap(fn, (originalFn, ...args) => {
+  const wrapped = _.wrap(fn, (originalFn, ...args) => {
     const now = Date.now();
 
     // we stringify the arguments so that identical arguments result in the
@@ -49,6 +49,10 @@ function cache(fn, { ttl = 60000 } = {}) {
 
     return newResult;
   });
+
+  wrapped.cache = fnCache;
+
+  return wrapped;
 }
 
 /**

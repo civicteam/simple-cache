@@ -146,6 +146,14 @@ describe('Cache', () => {
 
       expect(initialResult).to.equal(cachedResult);
     });
+
+    it('should expose the underlying cache', () => {
+      echo(1);
+
+      const cache = echo.cache;
+
+      expect(cache.get('1').cachedResult).to.equal(1);
+    })
   });
 
   describe('with a quick-expiring cache', () => {
