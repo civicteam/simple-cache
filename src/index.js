@@ -59,7 +59,7 @@ function cache(fn, { ttl = 60000 } = {}) {
  * Converts an array into a string that can be used as a key in the cache map
  * This avoids the problem in JS where ['a','b','c'] !== ['a','b','c']
  *
- * However, this implentation is costly - using JSON.stringify.
+ * However, this implementation is costly - using JSON.stringify.
  * @param array The input array to convert into a string
  * @return The stringified array
  */
