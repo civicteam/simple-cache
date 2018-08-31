@@ -2,7 +2,7 @@ const {expect} = require('chai');
 
 const cache = require('../src');
 
-// util.promsify(setTimeout) behaves oddly on different node versions (even node 8+)
+// util.promisify(setTimeout) behaves oddly on different node versions (even node 8+)
 // so polyfill it here
 const setTimeoutPromise = time => new Promise(resolve => setTimeout(resolve, time));
 
@@ -29,6 +29,15 @@ function Counter() {
 
     return Promise.resolve(a);
   }
+}
+
+// creates an object with a cycle in its graph
+function objectWithCycle() {
+  const parent = { hello: 'world' };
+  const child = { parent };
+
+  parent.children = [child];
+  return parent;
 }
 
 describe('Cache', () => {
@@ -94,10 +103,7 @@ describe('Cache', () => {
     });
 
     it('handles object parameters with cycles', () => {
-      const parent = {hello: 'world'};
-      const child = { parent };
-
-      parent.children = [child];
+      const parent = objectWithCycle();
 
       const result = echo(parent);
 
@@ -105,10 +111,7 @@ describe('Cache', () => {
     });
 
     it('does not manipulate object parameters with cycles in the cache', () => {
-      const parent = {hello: 'world'};
-      const child = { parent };
-
-      parent.children = [child];
+      const parent = objectWithCycle();
 
       echo(parent);
 
@@ -117,10 +120,7 @@ describe('Cache', () => {
     });
 
     it('uses the cache for object parameters with cycles', () => {
-      const parent = {hello: 'world'};
-      const child = { parent };
-
-      parent.children = [child];
+      const parent = objectWithCycle();
 
       echo(parent);
       echo(parent);
@@ -190,11 +190,11 @@ describe('Cache', () => {
 
       this.incrementFn = function() {
         return ++self.state;
-      }
+      };
 
       this.incrementClosure = () => {
         return ++this.state;
-      }
+      };
     }
 
     let statefulObject, incrementFn, incrementClosure;
