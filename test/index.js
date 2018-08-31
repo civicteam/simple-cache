@@ -153,7 +153,29 @@ describe('Cache', () => {
       const cache = echo.cache;
 
       expect(cache.get('1').cachedResult).to.equal(1);
-    })
+    });
+
+    it('should allow the caller to replace the cache', () => {
+      echo(1);
+
+      echo.cache = new Map();
+
+      expect(echo.cache.get('1')).to.be.undefined;
+
+      echo(1);
+
+      expect(echo.cache.get('1').cachedResult).to.equal(1);
+    });
+
+    it('should allow the caller to manipulate the cache', () => {
+      echo(1);
+
+      expect(echo.cache.get('1').cachedResult).to.equal(1);
+
+      echo.cache.get('1').cachedResult = 2;
+
+      expect(echo(1)).to.equal(2);
+    });
   });
 
   describe('with a quick-expiring cache', () => {

@@ -25,7 +25,8 @@ const DEFAULT_TTL = 1000 * 60 * 60; // 1 hour
  * @param ttl The expiry of individual entries in the cache
  */
 function cache(fn, { ttl = DEFAULT_TTL } = {}) {
-  const fnCache = new Map();
+  // this boxing allows you to change the cache implementation at runtime
+  const fnCache = { implementation: new Map() };
 
   const wrapped = _.wrap(fn, (originalFn, ...args) => {
     const now = Date.now();
@@ -33,7 +34,7 @@ function cache(fn, { ttl = DEFAULT_TTL } = {}) {
     // we stringify the arguments so that identical arguments result in the
     const stringifiedArgs = stringifyArray(args);
 
-    const { timestamp, cachedResult } = fnCache.get(stringifiedArgs) || {};
+    const { timestamp, cachedResult } = fnCache.implementation.get(stringifiedArgs) || {};
 
     if (timestamp) {
       // cache hit
@@ -47,12 +48,18 @@ function cache(fn, { ttl = DEFAULT_TTL } = {}) {
     const newResult = originalFn(...args);
 
     // update the cache with the new result
-    fnCache.set(stringifiedArgs, { timestamp: now, cachedResult: newResult });
+    fnCache.implementation.set(stringifiedArgs, { timestamp: now, cachedResult: newResult });
 
     return newResult;
   });
 
-  wrapped.cache = fnCache;
+  // expose the cache at runtime to allow the caller to replace/wipe/otherwise manipulate it
+  Object.defineProperty(wrapped, 'cache', {
+    get: () => fnCache.implementation,
+    set: newCache => {
+      fnCache.implementation = newCache;
+    }
+  });
 
   return wrapped;
 }
