@@ -1,6 +1,8 @@
 const _ = require('lodash');
 const { decycle } = require('json-cycle');
 
+const DEFAULT_TTL = 1000 * 60 * 60; // 1 hour
+
 /**
  * Returns a cached version of the input function, where, similarly to _.memoize,
  * function calls with the same parameters will be cached and returned.
@@ -22,7 +24,7 @@ const { decycle } = require('json-cycle');
  * @param fn The function to cache
  * @param ttl The expiry of individual entries in the cache
  */
-function cache(fn, { ttl = 60000 } = {}) {
+function cache(fn, { ttl = DEFAULT_TTL } = {}) {
   const fnCache = new Map();
 
   const wrapped = _.wrap(fn, (originalFn, ...args) => {
