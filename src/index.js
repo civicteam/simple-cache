@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { decycle } = require('json-cycle');
+const hash = require('object-hash');
 
 const DEFAULT_TTL = 1000 * 60 * 60; // 1 hour
 
@@ -68,12 +68,13 @@ function cache(fn, { ttl = DEFAULT_TTL } = {}) {
  * Converts an array into a string that can be used as a key in the cache map
  * This avoids the problem in JS where ['a','b','c'] !== ['a','b','c']
  *
- * However, this implementation is costly - using JSON.stringify.
+ * However, this implementation is costly - using a hash function. To optimise this
+ * we only hash each value if the value is an object or an array
  * @param array The input array to convert into a string
  * @return The stringified array
  */
 function stringifyArray(array) {
-  return array.reduce((curr, next) => curr + JSON.stringify(decycle(next)), '');
+  return array.reduce((curr, next) => curr + (_.isObject(next) ? hash(next) : next), '');
 }
 
 module.exports = cache;

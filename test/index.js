@@ -10,6 +10,13 @@ const setTimeoutPromise = time => new Promise(resolve => setTimeout(resolve, tim
 function Counter() {
   this.count = 0;
 
+  // just returns hello
+  this.hello = () => {
+    this.count++;
+
+    return 'hello';
+  };
+
   // just passes the parameter back
   this.echo = a => {
     this.count++;
@@ -42,15 +49,22 @@ function objectWithCycle() {
 
 describe('Cache', () => {
   let counter;
-  let echo, sum, promise;
+  let hello, echo, sum, promise;
 
   describe('with standard settings', () => {
     beforeEach(() => {
       counter = new Counter();
 
+      hello = cache(counter.hello);
       echo = cache(counter.echo);
       sum = cache(counter.sum);
       promise = cache(counter.promise);
+    });
+
+    it('calls the original function (no args)', () => {
+      const result = hello();
+
+      expect(result).to.equal('hello');
     });
 
     it('calls the original function (single arg)', () => {
@@ -63,6 +77,21 @@ describe('Cache', () => {
       const result = sum(3, 4);
 
       expect(result).to.equal(7);
+    });
+
+    it('caches the function result (no args)', () => {
+      hello();
+
+      // function has been called
+      expect(counter.count).to.equal(1);
+
+      const cachedResult = hello();
+
+      // should not have called the function again
+      expect(counter.count).to.equal(1);
+
+      // result should be correct
+      expect(cachedResult).to.equal('hello');
     });
 
     it('caches the function result (single arg)', () => {
