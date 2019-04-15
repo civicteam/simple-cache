@@ -41,3 +41,14 @@ cachedFn.cache = new Map();
 ```
 
 or you can pass any implementation you like of the Map interface, in order to control the cache size.
+
+You can also manipulate the arguments before they get stringified, for example, in order to remove arguments that are
+not suitable to be used as a cache key.
+
+```
+const negate = (a, logger) => {
+    logger.log(a);
+    return !a
+}
+const ignoreSecondArgument = cache(negate, { convertArgFn: a => a });
+```

@@ -23,16 +23,19 @@ const DEFAULT_TTL = 1000 * 60 * 60; // 1 hour
  *
  * @param fn The function to cache
  * @param ttl The expiry of individual entries in the cache
+ * @param filterArgFn A function that transforms/filters the arguments before stringifying them
  */
-function cache(fn, { ttl = DEFAULT_TTL } = {}) {
+function cache(fn, { ttl = DEFAULT_TTL, convertArgFn = (...args) => args } = {}) {
   // this boxing allows you to change the cache implementation at runtime
   const fnCache = { implementation: new Map() };
 
   const wrapped = _.wrap(fn, (originalFn, ...args) => {
     const now = Date.now();
 
-    // we stringify the arguments so that identical arguments result in the
-    const stringifiedArgs = stringifyArray(args);
+    // we stringify the arguments so that identical arguments result in the same cache key
+    // first we manipulate the args using convertArgFn too allow filtering out or removing
+    // args that are not suitable to stringify
+    const stringifiedArgs = stringifyArray(convertArgFn(...args));
 
     const { timestamp, cachedResult } = fnCache.implementation.get(stringifiedArgs) || {};
 
@@ -74,7 +77,8 @@ function cache(fn, { ttl = DEFAULT_TTL } = {}) {
  * @return The stringified array
  */
 function stringifyArray(array) {
-  return array.reduce((curr, next) => curr + (_.isObject(next) ? hash(next) : next), '');
+  const normalizedArray = Array.isArray(array) ? array : [array];
+  return normalizedArray.reduce((curr, next) => curr + (_.isObject(next) ? hash(next) : next), '');
 }
 
 module.exports = cache;

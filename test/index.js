@@ -1,4 +1,4 @@
-const {expect} = require('chai');
+const { expect } = require('chai');
 
 const cache = require('../src');
 
@@ -35,7 +35,7 @@ function Counter() {
     this.count++;
 
     return Promise.resolve(a);
-  }
+  };
 }
 
 // creates an object with a cycle in its graph
@@ -49,7 +49,10 @@ function objectWithCycle() {
 
 describe('Cache', () => {
   let counter;
-  let hello, echo, sum, promise;
+  let hello;
+  let echo;
+  let sum;
+  let promise;
 
   describe('with standard settings', () => {
     beforeEach(() => {
@@ -125,7 +128,7 @@ describe('Cache', () => {
     });
 
     it('handles object parameters', () => {
-      const parameter = {hello: 'world'};
+      const parameter = { hello: 'world' };
       const result = echo(parameter);
 
       expect(result).to.equal(parameter);
@@ -243,12 +246,12 @@ describe('Cache', () => {
         return ++self.state;
       };
 
-      this.incrementClosure = () => {
-        return ++this.state;
-      };
+      this.incrementClosure = () => ++this.state;
     }
 
-    let statefulObject, incrementFn, incrementClosure;
+    let statefulObject;
+    let incrementFn;
+    let incrementClosure;
 
     beforeEach(() => {
       statefulObject = new MyStatefulObject(100);
@@ -279,6 +282,34 @@ describe('Cache', () => {
 
       // should not have called the function again
       expect(statefulObject.state).to.equal(101);
+    });
+  });
+
+  describe('with an argument converter', () => {
+    let ignoreSecondArgument;
+
+    beforeEach(() => {
+      counter = new Counter();
+
+      ignoreSecondArgument = cache(counter.sum, { convertArgFn: a => a });
+    });
+
+    it('should ignore the second argument when caching', () => {
+      const result = ignoreSecondArgument(5, 6);
+
+      // function has been called
+      expect(counter.count).to.equal(1);
+
+      // result should be correct
+      expect(result).to.equal(11);
+
+      const cachedResulWithDifferentSecondArgument = ignoreSecondArgument(5, 100);
+
+      // should not have called the function again
+      expect(counter.count).to.equal(1);
+
+      // result should be the same as the original call
+      expect(cachedResulWithDifferentSecondArgument).to.equal(11);
     });
   });
 });
