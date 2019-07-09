@@ -31,6 +31,13 @@ function Counter() {
     return a + b;
   };
 
+  // adds the three parameters
+  this.sum3 = (a, b, c) => {
+    this.count++;
+
+    return a + b + c;
+  };
+
   this.promise = a => {
     this.count++;
 
@@ -286,30 +293,38 @@ describe('Cache', () => {
   });
 
   describe('with an argument converter', () => {
-    let ignoreSecondArgument;
+    let ignoreThirdArgument;
 
     beforeEach(() => {
       counter = new Counter();
 
-      ignoreSecondArgument = cache(counter.sum, { convertArgFn: a => a });
+      ignoreThirdArgument = cache(counter.sum3, { convertArgFn: (a, b) => [a, b] });
     });
 
-    it('should ignore the second argument when caching', () => {
-      const result = ignoreSecondArgument(5, 6);
+    it('should ignore the third argument when caching', () => {
+      const result = ignoreThirdArgument(5, 6, 7);
 
       // function has been called
       expect(counter.count).to.equal(1);
 
       // result should be correct
-      expect(result).to.equal(11);
+      expect(result).to.equal(18);
 
-      const cachedResulWithDifferentSecondArgument = ignoreSecondArgument(5, 100);
+      const cachedResultWithDifferentThirdArgument = ignoreThirdArgument(5, 6, 100);
 
       // should not have called the function again
       expect(counter.count).to.equal(1);
 
       // result should be the same as the original call
-      expect(cachedResulWithDifferentSecondArgument).to.equal(11);
+      expect(cachedResultWithDifferentThirdArgument).to.equal(18);
+
+      const cachedResultWithDifferentSecondArgument = ignoreThirdArgument(5, 7, 8);
+
+      // should have called the function again
+      expect(counter.count).to.equal(2);
+
+      // result should be the same as the original call
+      expect(cachedResultWithDifferentSecondArgument).to.equal(20);
     });
   });
 });
